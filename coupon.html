@@ -1,26 +1,42 @@
 <!doctype html>
 <html lang="ko">
 <head>
-
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1" />
   <title>쿠폰 – 비교 아카데미</title>
-  <meta name="description" content="장학 쿠폰 신청 폼(데모)" />
-  <link rel="icon" href="./assets/icons/favicon.svg">
-  <meta property="og:type" content="website">
-  <meta property="og:site_name" content="Compare Academy">
-  <meta property="og:title" content="쿠폰 – 비교 아카데미">
-  <meta property="og:description" content="장학 쿠폰 신청 폼(데모)">
-  <meta property="og:url" content="https://woosus.github.io/casino-compare/">
-  <meta property="og:image" content="https://woosus.github.io/casino-compare/assets/img/banner.png">
-  <meta name="twitter:card" content="summary_large_image">
-  <meta name="theme-color" content="#0b0e12">
-
-  <link rel="stylesheet" href="./styles.css" />
+  <link rel="stylesheet" href="styles.css" />
+  <script src="config.js"></script>
+  <script src="app.js"></script>
 </head>
-<body>
-  <!-- 기존 본문은 v1 기준과 동일하게 유지하시거나, 필요 시 아래 주석을 삭제하고 기존 파일 내용을 사용하세요. -->
-  <!-- 이 파일은 '개선된 <head> 메타 + 파비콘' 패치용입니다. 기존 파일을 이걸로 덮어도 동작합니다. -->
-  <script>location.href='"./coupon.html'</script>
+<body class="page-coupon">
+  <header class="topbar">
+    <div class="wrap">
+      <div class="brand">
+        <img src="assets/img/logo.png" alt="로고" onerror="this.style.display='none'">
+        <strong>GAME 비교 ACADEMY</strong>
+      </div>
+      <nav class="menu">
+        <a href="index.html" data-page="home">홈</a>
+        <a href="compare.html" data-page="compare">비교검색</a>
+        <a href="ranking.html" data-page="ranking">순위</a>
+        <a href="coupon.html" data-page="coupon">쿠폰</a>
+      </nav>
+    </div>
+  </header>
+
+  <main class="wrap">
+    <section class="panel">
+      <h2>장학 쿠폰 신청</h2>
+      <form id="couponForm" class="form">
+        <label>연락처(텔레그램/카카오) <input name="contact" required placeholder="@username 또는 번호"></label>
+        <label>희망 게임 <select name="game"><option>스포츠</option><option>카지노</option><option>슬롯</option><option>라이브</option></select></label>
+        <label>메모 <textarea name="memo" rows="4" placeholder="필요 조건이나 상황을 적어주세요."></textarea></label>
+        <button class="btn-primary">신청하기</button>
+      </form>
+      <p class="muted">※ 설정 전까지 데모 동작입니다.</p>
+    </section>
+  </main>
+
+  <footer class="footer"><div class="wrap">© 2025 Compare Academy</div></footer>
 </body>
 </html>
