@@ -1,0 +1,4 @@
+User-agent: *
+Allow: /
+
+Sitemap: https://woosus.github.io/casino-compare/sitemap.xml
