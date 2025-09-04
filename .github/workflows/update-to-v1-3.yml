@@ -1,0 +1,246 @@
+name: Apply v1.3 (multi-criteria scoring)
+on:
+  push:
+    branches: ["main"]   # 이 파일을 올리는 즉시 작동
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+jobs:
+  update_v13:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Write v1.3 files (only if not already v1.3)
+        run: |
+          set -e
+          VFILE="VERSION.txt"
+          if [ -f "$VFILE" ] && grep -q "v1.3" "$VFILE"; then
+            echo "Already v1.3. Skipping."
+            exit 0
+          fi
+
+          mkdir -p assets
+
+          cat > VERSION.txt <<'EOF_V'
+v1.3 – Multi-criteria scoring + 'etc' merged + review rating metric
+EOF_V
+
+          cat > ranking.html <<'EOF_R'
+<!doctype html>
+<html lang="ko">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>순위 – 비교 아카데미 v1.3</title>
+  <link rel="stylesheet" href="styles.css" />
+  <script src="config.js"></script>
+  <script src="app.js"></script>
+  <style>
+    .controls{display:grid;gap:10px;margin:12px 0 8px}
+    .controls .row{display:flex;flex-wrap:wrap;gap:8px;align-items:center}
+    .pill{display:inline-flex;align-items:center;gap:6px;border:1px solid var(--line);background:rgba(255,255,255,.03);padding:8px 10px;border-radius:999px}
+    .pill input{accent-color:#17a7ff}
+    .chips{display:flex;flex-wrap:wrap;gap:6px;margin-top:6px}
+    .chip{border:1px solid var(--line);border-radius:999px;padding:4px 8px;font-size:12px;color:#a8bdd4}
+    .muted{color:#a8bdd4}
+  </style>
+</head>
+<body class="page-ranking">
+  <header class="topbar">
+    <div class="wrap">
+      <div class="brand">
+        <img src="assets/img/logo.png" alt="로고" onerror="this.style.display='none'">
+        <strong>GAME 비교 ACADEMY</strong>
+      </div>
+      <nav class="menu">
+        <a href="index.html" data-page="home">홈</a>
+        <a href="compare.html" data-page="compare">비교검색</a>
+        <a class="active" href="ranking.html" data-page="ranking">순위</a>
+        <a href="coupon.html" data-page="coupon">쿠폰</a>
+      </nav>
+    </div>
+  </header>
+
+  <main class="wrap">
+    <section class="panel">
+      <h2>v1.3 멀티 기준 순위</h2>
+      <div class="controls">
+        <div class="row">
+          <strong>대분류:</strong>
+          <label class="pill"><input type="radio" name="genre" value="" checked> 전체</label>
+          <label class="pill"><input type="radio" name="genre" value="sports"> 스포츠</label>
+          <label class="pill"><input type="radio" name="genre" value="casino"> 카지노</label>
+          <label class="pill"><input type="radio" name="genre" value="slots"> 슬롯</label>
+          <label class="pill"><input type="radio" name="genre" value="etc"> 기타</label>
+        </div>
+        <div class="row">
+          <strong>중분류(복수 선택):</strong>
+          <label class="pill"><input type="checkbox" value="first_deposit_high" checked> 첫입금 높음</label>
+          <label class="pill"><input type="checkbox" value="reload_bonus_high" checked> 재입금 높음</label>
+          <label class="pill"><input type="checkbox" value="wager_low"> 웨이저 낮음</label>
+          <label class="pill"><input type="checkbox" value="review_rating_high"> 후기별점 높음</label>
+          <label class="pill"><input type="checkbox" value="event_count_high"> 이벤트 많음</label>
+          <label class="pill"><input type="checkbox" value="cashback_daily_high"> 당일 페이백</label>
+          <label class="pill"><input type="checkbox" value="cashback_weekly_high"> 주간 페이백</label>
+          <label class="pill"><input type="checkbox" value="max_cashout_high"> 최대출금</label>
+          <label class="pill"><input type="checkbox" value="slots_event_count_high"> 슬롯 이벤트</label>
+          <label class="pill"><input type="checkbox" value="casino_event_count_high"> 카지노 이벤트</label>
+          <label class="pill"><input type="checkbox" value="sports_event_count_high"> 스포츠 이벤트</label>
+          <label class="pill"><input type="checkbox" value="activity_coupon_high"> 활동쿠폰</label>
+          <label class="pill"><input type="checkbox" value="flash_event_high"> 돌발이벤트</label>
+          <label class="pill"><input type="checkbox" value="welcome_no_deposit_high"> 첫가입 보너스</label>
+        </div>
+        <div class="row">
+          <button class="btn-primary" id="apply">적용</button>
+          <span class="muted" id="explain"></span>
+        </div>
+        <div class="chips" id="chips"></div>
+      </div>
+    </section>
+
+    <section class="ranking">
+      <h2>결과</h2>
+      <ol class="cards" id="rankCards"></ol>
+    </section>
+  </main>
+
+  <footer class="footer">
+    <div class="wrap">© 2025 Compare Academy. v1.3</div>
+  </footer>
+</body>
+</html>
+EOF_R
+
+          cat > app.js <<'EOF_A'
+/* v1.3 – Multi-criteria scoring + 'etc' merged + review rating metric */
+const CFG = window.APP_CONFIG || {
+  data: { mode: "auto", apiUrl: "", sheetCsvUrl: "", local: "./assets/events.json" },
+  scoring: { alpha: 1.0, beta: 0.8, gamma: 3.0, delta: 6.0 },
+  api: { couponSubmit: "" }
+};
+
+const MID_CONFIG = [
+  { id:"first_deposit_high", label:"첫입금 높음", field:"first_deposit_pct", dir:"desc", tie:["first_deposit_cap"] },
+  { id:"reload_bonus_high", label:"재입금 높음", field:"reload_pct", dir:"desc", tie:["reload_cap"] },
+  { id:"contribution_rate_high", label:"배팅요율 높음", field:"avg_contribution_rate", dir:"desc" },
+  { id:"event_count_high", label:"이벤트 많음", field:"active_event_count", dir:"desc" },
+  { id:"cashback_daily_high", label:"당일 페이백", field:"cashback_daily_pct", dir:"desc" },
+  { id:"cashback_weekly_high", label:"주간 페이백", field:"cashback_weekly_pct", dir:"desc" },
+  { id:"activity_coupon_high", label:"활동쿠폰", field:"monthly_coupon_value", dir:"desc", tie:["coupon_count"] },
+  { id:"flash_event_high", label:"돌발이벤트", field:"flash_event_count_30d", dir:"desc" },
+  { id:"welcome_no_deposit_high", label:"첫가입 보너스", field:"welcome_credit_value", dir:"desc" },
+  { id:"all_in_event_high", label:"올인이벤트", field:"all_in_support_pct", dir:"desc", tie:["all_in_support_cap"] },
+  { id:"review_rating_high", label:"후기별점 높음", field:"rating_adjusted", dir:"desc", tie:["rating_count","updated_at"] },
+  { id:"sports_event_count_high", label:"스포츠 이벤트", field:"sports_event_count_30d", dir:"desc" },
+  { id:"slots_event_count_high", label:"슬롯 이벤트", field:"slots_event_count_30d", dir:"desc" },
+  { id:"casino_event_count_high", label:"카지노 이벤트", field:"casino_event_count_30d", dir:"desc" },
+  { id:"wager_low", label:"웨이저 낮음", field:"wager_multiplier", dir:"asc" },
+  { id:"max_cashout_high", label:"최대출금", field:"max_cashout", dir:"desc" }
+];
+
+async function fetchJSON(url){ const r=await fetch(url,{cache:"no-store"}); if(!r.ok) throw new Error(r.status); return r.json(); }
+async function fetchCSV(url){
+  const r = await fetch(url, { cache: "no-store" }); if(!r.ok) throw new Error(r.status);
+  const t = await r.text(); const [head,...rows] = t.trim().split(/\r?\n/).map(l=>l.split(","));
+  return rows.map(arr=>Object.fromEntries(arr.map((v,i)=>[head[i].trim(), v.trim()])));
+}
+async function loadEvents(){
+  const mode = (CFG.data?.mode||"auto");
+  if(mode==="api"||mode==="auto"){ const u=CFG.data?.apiUrl; if(u) try{ const j=await fetchJSON(u); if(Array.isArray(j)) return j; }catch(e){} }
+  if(mode==="sheet"||mode==="auto"){ const u=CFG.data?.sheetCsvUrl; if(u) try{ const j=await fetchCSV(u); if(Array.isArray(j)) return j; }catch(e){} }
+  try{ return await fetchJSON(CFG.data?.local||"./assets/events.json"); }catch(e){}
+  return [];
+}
+
+// normalization helpers
+function getMinMax(items, field){
+  let vals = items.map(it => Number(it[field] ?? it[field.toUpperCase()] ?? 0)).filter(v => !isNaN(v));
+  if(vals.length===0) return {min:0, max:1};
+  const min = Math.min(...vals), max = Math.max(...vals);
+  return (min===max) ? {min, max: min+1} : {min, max};
+}
+function normalize(value, min, max, dir){
+  const x = Number(value||0);
+  if(dir==="asc"){ return ((max - x) / (max - min)) * 100; }
+  return ((x - min) / (max - min)) * 100;
+}
+
+function combinedScore(item, selectedMids, items){
+  if(selectedMids.length===0) return 0;
+  let sum = 0;
+  selectedMids.forEach(id=>{
+    const cfg = MID_CONFIG.find(m=>m.id===id);
+    if(!cfg) return;
+    const {min,max} = getMinMax(items, cfg.field);
+    const v = Number(item[cfg.field] ?? item[cfg.field.toUpperCase()] ?? 0);
+    sum += normalize(v, min, max, cfg.dir);
+  });
+  return Math.round(sum / selectedMids.length);
+}
+
+function renderChips(sel){ const chips = document.getElementById('chips'); chips.innerHTML = sel.map(id=>{
+  const cfg = MID_CONFIG.find(m=>m.id===id); return `<span class="chip">${cfg?.label||id}</span>`;
+}).join(''); }
+
+async function initRanking(){
+  const data = await loadEvents();
+  const rankCards = document.getElementById('rankCards');
+  const applyBtn = document.getElementById('apply');
+  const explain = document.getElementById('explain');
+
+  function currentGenre(){ const g = document.querySelector('input[name="genre"]:checked'); return g ? g.value : ""; }
+  function currentMids(){ return [...document.querySelectorAll('.controls input[type="checkbox"]:checked')].map(i=>i.value); }
+
+  function apply(){
+    const g = currentGenre();
+    const mids = currentMids();
+    renderChips(mids);
+    const filtered = g ? data.filter(it => (String(it.genre||"").toLowerCase()===g)) : data.slice();
+    const scored = filtered.map(it => ({ ...it, _score: combinedScore(it, mids, filtered) }))
+                           .sort((a,b)=> b._score - a._score
+                              || Number(b.first_deposit_cap||0)-Number(a.first_deposit_cap||0)
+                              || Number(b.reload_cap||0)-Number(a.reload_cap||0)
+                              || Number(b.rating_count||0)-Number(a.rating_count||0)
+                              || String(a.name||"").localeCompare(String(b.name||""),"ko"));
+    rankCards.innerHTML = scored.map((it,i)=>`
+      <li class="card">
+        <div class="title"><span class="rank">${i+1}</span>${it.name}</div>
+        <div class="meta">장르 ${it.genre} • 합산점수 ${it._score} • 첫입금 ${it.first_deposit_pct||0}% • 재입금 ${it.reload_pct||0}% • 웨이저 ${it.wager_multiplier||'-'}x • 별점 ${(it.rating_adjusted||0).toFixed ? (it.rating_adjusted||0).toFixed(2) : it.rating_adjusted}</div>
+      </li>
+    `).join('');
+    explain.textContent = `기준 ${mids.length}개(균등가중) • 데이터 ${filtered.length}건`;
+  }
+
+  applyBtn.addEventListener('click', apply);
+  document.querySelectorAll('.controls input').forEach(el => el.addEventListener('change', ()=>{}));
+  apply(); // initial
+}
+
+// boot
+if(document.body && document.body.classList.contains('page-ranking')){
+  initRanking();
+}
+EOF_A
+
+          # sample data (kept minimal; 실제 운영은 시트/스크립트 연동 권장)
+          mkdir -p assets
+          cat > assets/events.json <<'EOF_E'
+[
+  {"id":"s1","name":"BET A","genre":"slots","first_deposit_pct":60,"first_deposit_cap":200000,"reload_pct":35,"reload_cap":150000,"wager_multiplier":25,"avg_contribution_rate":100,"active_event_count":7,"cashback_daily_pct":10,"cashback_weekly_pct":25,"monthly_coupon_value":30000,"coupon_count":4,"flash_event_count_30d":4,"welcome_credit_value":10000,"all_in_support_pct":50,"all_in_support_cap":100000,"sports_event_count_30d":0,"slots_event_count_30d":5,"casino_event_count_30d":1,"max_cashout":500000,"rating_avg":4.6,"rating_count":73,"rating_adjusted":4.4,"updated_at":"2025-09-01T00:00:00Z"},
+  {"id":"s2","name":"BET B","genre":"casino","first_deposit_pct":30,"first_deposit_cap":100000,"reload_pct":45,"reload_cap":200000,"wager_multiplier":18,"avg_contribution_rate":90,"active_event_count":5,"cashback_daily_pct":12,"cashback_weekly_pct":20,"monthly_coupon_value":20000,"coupon_count":5,"flash_event_count_30d":2,"welcome_credit_value":0,"all_in_support_pct":40,"all_in_support_cap":80000,"sports_event_count_30d":0,"slots_event_count_30d":2,"casino_event_count_30d":4,"max_cashout":600000,"rating_avg":4.7,"rating_count":22,"rating_adjusted":4.2,"updated_at":"2025-09-01T00:00:00Z"},
+  {"id":"s3","name":"BET C","genre":"sports","first_deposit_pct":20,"first_deposit_cap":50000,"reload_pct":25,"reload_cap":70000,"wager_multiplier":12,"avg_contribution_rate":80,"active_event_count":9,"cashback_daily_pct":6,"cashback_weekly_pct":18,"monthly_coupon_value":15000,"coupon_count":2,"flash_event_count_30d":6,"welcome_credit_value":5000,"all_in_support_pct":0,"all_in_support_cap":0,"sports_event_count_30d":8,"slots_event_count_30d":0,"casino_event_count_30d":0,"max_cashout":400000,"rating_avg":4.1,"rating_count":130,"rating_adjusted":4.15,"updated_at":"2025-09-01T00:00:00Z"},
+  {"id":"s4","name":"BET D","genre":"etc","first_deposit_pct":50,"first_deposit_cap":120000,"reload_pct":20,"reload_cap":80000,"wager_multiplier":35,"avg_contribution_rate":110,"active_event_count":3,"cashback_daily_pct":14,"cashback_weekly_pct":22,"monthly_coupon_value":5000,"coupon_count":1,"flash_event_count_30d":1,"welcome_credit_value":8000,"all_in_support_pct":30,"all_in_support_cap":50000,"sports_event_count_30d":0,"slots_event_count_30d":1,"casino_event_count_30d":0,"max_cashout":350000,"rating_avg":4.9,"rating_count":8,"rating_adjusted":4.1,"updated_at":"2025-09-01T00:00:00Z"},
+  {"id":"s5","name":"BET E","genre":"slots","first_deposit_pct":80,"first_deposit_cap":250000,"reload_pct":15,"reload_cap":50000,"wager_multiplier":45,"avg_contribution_rate":95,"active_event_count":10,"cashback_daily_pct":5,"cashback_weekly_pct":12,"monthly_coupon_value":10000,"coupon_count":3,"flash_event_count_30d":5,"welcome_credit_value":0,"all_in_support_pct":60,"all_in_support_cap":150000,"sports_event_count_30d":0,"slots_event_count_30d":7,"casino_event_count_30d":0,"max_cashout":800000,"rating_avg":3.9,"rating_count":420,"rating_adjusted":4.0,"updated_at":"2025-09-01T00:00:00Z"}
+]
+EOF_E
+
+      - name: Commit v1.3 changes (if any)
+        run: |
+          git config user.name  "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add -A
+          git diff --cached --quiet || git commit -m "chore(site): apply v1.3 multi-criteria ranking"
+          git push || true
