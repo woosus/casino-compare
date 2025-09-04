@@ -1,26 +1,34 @@
 <!doctype html>
 <html lang="ko">
 <head>
-
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1" />
   <title>홈 – 비교 아카데미</title>
-  <meta name="description" content="온라인 카지노 이벤트 비교·순위 사이트" />
-  <link rel="icon" href="./assets/icons/favicon.svg">
-  <meta property="og:type" content="website">
-  <meta property="og:site_name" content="Compare Academy">
-  <meta property="og:title" content="홈 – 비교 아카데미">
-  <meta property="og:description" content="온라인 카지노 이벤트 비교·순위 사이트">
-  <meta property="og:url" content="https://woosus.github.io/casino-compare/">
-  <meta property="og:image" content="https://woosus.github.io/casino-compare/assets/img/banner.png">
-  <meta name="twitter:card" content="summary_large_image">
-  <meta name="theme-color" content="#0b0e12">
-
-  <link rel="stylesheet" href="./styles.css" />
+  <link rel="stylesheet" href="styles.css" />
+  <script src="config.js"></script>
+  <script src="app.js"></script>
 </head>
-<body>
-  <!-- 기존 본문은 v1 기준과 동일하게 유지하시거나, 필요 시 아래 주석을 삭제하고 기존 파일 내용을 사용하세요. -->
-  <!-- 이 파일은 '개선된 <head> 메타 + 파비콘' 패치용입니다. 기존 파일을 이걸로 덮어도 동작합니다. -->
-  <script>location.href='"./index.html'</script>
+<body class="page-home">
+  <header class="topbar">
+    <div class="wrap">
+      <div class="brand">
+        <img src="assets/img/logo.png" alt="로고" onerror="this.style.display='none'">
+        <strong>GAME 비교 ACADEMY</strong>
+      </div>
+      <nav class="menu">
+        <a href="index.html" data-page="home">홈</a>
+        <a href="compare.html" data-page="compare">비교검색</a>
+        <a href="ranking.html" data-page="ranking">순위</a>
+        <a href="coupon.html" data-page="coupon">쿠폰</a>
+      </nav>
+    </div>
+  </header>
+  <main class="wrap">
+    <section class="hero">
+      <img src="assets/img/banner.png" alt="메인 배너" onerror="this.style.display='none'">
+      <div class="hero-guard"></div>
+    </section>
+  </main>
+  <footer class="footer"><div class="wrap">© 2025 Compare Academy</div></footer>
 </body>
 </html>
