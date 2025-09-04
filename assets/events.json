@@ -1,0 +1,44 @@
+[
+  {
+    "name": "BET A",
+    "type": "슬롯",
+    "bonus": 60,
+    "wager": 25,
+    "tag": "리로드"
+  },
+  {
+    "name": "BET B",
+    "type": "라이브",
+    "bonus": 30,
+    "wager": 15,
+    "tag": "첫입금"
+  },
+  {
+    "name": "BET C",
+    "type": "스포츠",
+    "bonus": 0,
+    "wager": 0,
+    "tag": "롤백10%"
+  },
+  {
+    "name": "BET D",
+    "type": "슬롯",
+    "bonus": 70,
+    "wager": 40,
+    "tag": "슬롯전용"
+  },
+  {
+    "name": "BET E",
+    "type": "카지노",
+    "bonus": 35,
+    "wager": 18,
+    "tag": "리로드"
+  },
+  {
+    "name": "BET F",
+    "type": "라이브",
+    "bonus": 45,
+    "wager": 22,
+    "tag": "스페셜"
+  }
+]

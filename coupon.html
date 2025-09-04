@@ -1,0 +1,44 @@
+<!doctype html>
+<html lang="ko">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>쿠폰 – 비교 아카데미</title>
+  <meta name="description" content="온라인 카지노 이벤트 비교·순위·쿠폰 자동화 데모 사이트" />
+  <link rel="stylesheet" href="./styles.css" />
+</head>
+<body class="page-coupon">
+  <header class="topbar">
+    <div class="wrap">
+      <div class="brand">
+        <img src="./assets/img/logo.png" alt="로고" onerror="this.style.display='none'">
+        <strong>GAME 비교 ACADEMY</strong>
+      </div>
+      <nav class="menu">
+        <a href="./index.html" data-page="home">홈</a>
+        <a href="./compare.html" data-page="compare">비교검색</a>
+        <a href="./ranking.html" data-page="ranking">순위</a>
+        <a href="./coupon.html" data-page="coupon">쿠폰</a>
+      </nav>
+    </div>
+  </header>
+
+  <main class="wrap">
+    <section class="panel">
+      <h2>장학 쿠폰 신청</h2>
+      <form id="couponForm" class="form">
+        <label>연락처(텔레그램/카카오) <input required placeholder="@username 또는 번호"></label>
+        <label>희망 게임 <select><option>스포츠</option><option>카지노</option><option>슬롯</option><option>라이브</option></select></label>
+        <label>메모 <textarea rows="4" placeholder="필요 조건이나 상황을 적어주세요."></textarea></label>
+        <button class="btn-primary">신청하기</button>
+      </form>
+      <p class="muted">※ 실제 제출은 데모에서 저장하지 않습니다.</p>
+    </section>
+  </main>
+
+  <footer class="footer">
+    <div class="wrap">© 2025 Compare Academy. 데모 v1</div>
+  </footer>
+  <script src="./app.js"></script>
+</body>
+</html>
