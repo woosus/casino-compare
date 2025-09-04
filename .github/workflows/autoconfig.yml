@@ -1,0 +1,74 @@
+name: Auto-configure site (config.js + meta) and push
+on:
+  push:
+    branches: [ "main" ]
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+jobs:
+  autoconfig:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Make config.js from secrets (if missing)
+        run: |
+          set -e
+          if [ ! -f config.js ]; then
+            API_EVENTS_URL="${{ secrets.API_EVENTS_URL }}"
+            API_COUPON_URL="${{ secrets.API_COUPON_URL }}"
+            SHEET_CSV_URL="${{ secrets.SHEET_CSV_URL }}"
+            cat > config.js <<'EOF'
+            window.APP_CONFIG = {
+              data: {
+                mode: "auto",                 // auto: API→Sheet→local
+                apiUrl: "__API_EVENTS_URL__", // optional
+                sheetCsvUrl: "__SHEET_CSV_URL__", // optional
+                local: "./assets/events.json"
+              },
+              scoring: { alpha: 1.0, beta: 0.8, gamma: 3.0, delta: 6.0 },
+              api: { couponSubmit: "__API_COUPON_URL__" } // optional
+            };
+            EOF
+            sed -i "s|__API_EVENTS_URL__|${API_EVENTS_URL}|g" config.js
+            sed -i "s|__SHEET_CSV_URL__|${SHEET_CSV_URL}|g" config.js
+            sed -i "s|__API_COUPON_URL__|${API_COUPON_URL}|g" config.js
+          fi
+
+      - name: Ensure <script src="./config.js"> exists before app.js
+        run: |
+          for f in index.html compare.html ranking.html coupon.html; do
+            [ -f "$f" ] || continue
+            grep -q 'config.js' "$f" && continue
+            sed -i 's|<script src="./app.js"></script>|<script src="./config.js"></script>\n  <script src="./app.js"></script>|' "$f"
+          done
+
+      - name: Generate basic SEO files if missing
+        run: |
+          BASE_URL="https://${{ github.repository_owner }}.github.io/${{ github.event.repository.name }}/"
+          [ -f .nojekyll ] || touch .nojekyll
+          if [ ! -f robots.txt ]; then
+            printf "User-agent: *\nAllow: /\n\nSitemap: %ssitemap.xml\n" "$BASE_URL" > robots.txt
+          fi
+          if [ ! -f sitemap.xml ]; then
+            NOW=$(date -u +%Y-%m-%dT%H:%M:%SZ)
+            cat > sitemap.xml <<EOF
+            <?xml version="1.0" encoding="UTF-8"?>
+            <urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">
+              <url><loc>${BASE_URL}</loc><lastmod>${NOW}</lastmod><priority>1.0</priority></url>
+              <url><loc>${BASE_URL}compare.html</loc><lastmod>${NOW}</lastmod><priority>0.9</priority></url>
+              <url><loc>${BASE_URL}ranking.html</loc><lastmod>${NOW}</lastmod><priority>0.9</priority></url>
+              <url><loc>${BASE_URL}coupon.html</loc><lastmod>${NOW}</lastmod><priority>0.6</priority></url>
+            </urlset>
+            EOF
+          fi
+
+      - name: Commit changes (if any)
+        run: |
+          git config user.name  "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add -A
+          git diff --cached --quiet || git commit -m "chore(ci): autoconfig (config.js/meta)"
+          git push || true
